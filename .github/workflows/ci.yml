@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check app tests
+      - name: Tests (pytest)
+        run: pytest -q
+      - name: Migrations apply and revert cleanly (SQLite)
+        env:
+          DATABASE_URL: sqlite:///./ci_migration.db
+        run: alembic upgrade head && alembic downgrade base
+
+  backend-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: opspilot
+          POSTGRES_USER: opspilot
+          POSTGRES_PASSWORD: ci_password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U opspilot -d opspilot"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql+psycopg://opspilot:ci_password@localhost:5432/opspilot
+      ENVIRONMENT: development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Alembic migrations on PostgreSQL
+        run: alembic upgrade head
+      - name: Seed demo data on PostgreSQL
+        run: python -m app.cli seed
+      - name: Smoke test against PostgreSQL
+        run: |
+          python - <<'PY'
+          from fastapi.testclient import TestClient
+          from app.main import app
+          c = TestClient(app)
+          tok = c.post("/api/v1/auth/login", json={"email": "admin@opspilot.local", "password": "opspilot-demo"}).json()["access_token"]
+          h = {"Authorization": f"Bearer {tok}"}
+          k = c.get("/api/v1/dashboard/metrics", headers=h).json()
+          assert k["total_orders"] >= 100, k
+          chat = c.post("/api/v1/ai/chat", json={"message": "Quais pedidos estão atrasados?"}, headers=h).json()
+          assert chat["message"]["metadata"]["tool_runs"], chat
+          print("PostgreSQL smoke test OK", k["total_orders"])
+          PY
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Typecheck + production build
+        run: npm run build
+      - name: Unit / component tests (Vitest)
+        run: npm test
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate compose files
+        run: |
+          docker compose config -q
+          POSTGRES_PASSWORD=x SECRET_KEY=$(printf 'a%.0s' {1..40}) CORS_ORIGINS=https://example.com ADMIN_EMAIL=a@b.co ADMIN_PASSWORD=x docker compose -f docker-compose.prod.yml config -q
+      - name: Build images
+        run: docker compose build
