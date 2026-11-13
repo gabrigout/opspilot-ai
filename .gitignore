@@ -1,0 +1,29 @@
+# secrets / local config
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.db
+*.sqlite3
+
+# node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# tooling / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+test-results/
+playwright-report/
