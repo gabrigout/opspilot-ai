@@ -17,7 +17,18 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
     expect(await screen.findByText('Informe o e-mail')).toBeInTheDocument()
     expect(screen.getByText('Informe a senha')).toBeInTheDocument()
-    expect(api.fn).not.toHaveBeenCalled()
+    expect(api.calls.some((c) => c.path === '/auth/login')).toBe(false)  // invalid form never reaches the API
+  })
+
+  it.each([['demo', true], ['development', true], ['production', false]])('demo credentials hint for environment=%s -> %s', async (environment, visible) => {
+    mockApi({ '/health': () => ({ status: 'ok', environment }) })
+    renderApp(<LoginPage />, { authenticated: false })
+    await screen.findByRole('button', { name: 'Entrar' })
+    if (visible) expect(await screen.findByText('opspilot-demo')).toBeInTheDocument()
+    else {
+      await new Promise((r) => setTimeout(r, 300)) // give the /health query time to settle
+      expect(screen.queryByText('opspilot-demo')).not.toBeInTheDocument()
+    }
   })
 
   it('stores the token on success and shows the API error on failure', async () => {

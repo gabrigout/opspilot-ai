@@ -2,7 +2,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.core.config import Settings
+from app.core.config import DEFAULT_SQLITE_URL, Settings
 from app.models import User
 from app.services import seed
 
@@ -22,6 +22,38 @@ def test_production_accepts_strong_config():
 def test_production_rejects_weak_config(override):
     with pytest.raises(ValidationError):
         Settings(**{**GOOD, **override})
+
+
+def test_demo_mode_allows_sqlite_but_still_requires_a_real_secret():
+    ok = Settings(environment="demo", secret_key="y" * 40, database_url="sqlite:////tmp/opspilot.db")
+    assert ok.is_demo and not ok.is_production
+    for bad in ("short", "dev-secret-change-me-dev-secret-change-me"):
+        with pytest.raises(ValidationError):
+            Settings(environment="demo", secret_key=bad, database_url="sqlite:////tmp/opspilot.db")
+
+
+def test_on_vercel_defaults_are_safe(monkeypatch):
+    monkeypatch.setenv("VERCEL", "1")
+    # no secret configured -> refuses to start instead of serving with the public dev key
+    with pytest.raises(ValidationError):
+        Settings(environment="development", secret_key="dev-secret-change-me-dev-secret-change-me")
+    s = Settings(environment="development", secret_key="z" * 40, database_url=DEFAULT_SQLITE_URL)
+    assert s.is_demo and s.database_url == "sqlite:////tmp/opspilot.db"
+
+
+def test_demo_mode_creates_demo_users_production_does_not(db, monkeypatch):
+    from app.core import config
+    for u in db.query(User).all():
+        db.delete(u)
+    db.commit()
+    monkeypatch.setattr(config, "get_settings", lambda: Settings(environment="demo", secret_key="y" * 40, database_url="sqlite://"))
+    monkeypatch.setattr(seed, "get_settings", config.get_settings)
+    seed.ensure_users(db)
+    assert {u.email for u in db.query(User).all()} >= {"admin@opspilot.local", "viewer@opspilot.local"}
+
+
+def test_health_reports_environment_for_the_login_hint(client):
+    assert client.get("/api/v1/health").json()["environment"] == "test"
 
 
 def test_wildcard_cors_is_ignored():

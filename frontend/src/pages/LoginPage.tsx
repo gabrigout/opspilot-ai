@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -6,7 +7,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { useAuth } from '@/hooks/useAuth'
-import { errorMessage } from '@/lib/api'
+import { errorMessage, get } from '@/lib/api'
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Informe o e-mail').regex(/^[^@\s]+@[^@\s]+$/, 'E-mail inválido'),
@@ -17,6 +18,9 @@ type LoginForm = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const { login } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  // Demo credentials are only offered when the backend says it is NOT a production environment.
+  const health = useQuery({ queryKey: ['health'], queryFn: () => get<{ environment: string }>('/health'), retry: false, staleTime: Infinity })
+  const showDemoHint = !!health.data && health.data.environment !== 'production'
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) })
 
   const onSubmit = handleSubmit(async (v) => {
@@ -46,11 +50,11 @@ export default function LoginPage() {
           </Field>
           {error && <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-[#ff8585]">{error}</p>}
           <Button type="submit" className="w-full" loading={isSubmitting}>Entrar</Button>
-          {import.meta.env.DEV && (
+          {showDemoHint && (
             <button type="button" className="flex w-full cursor-pointer items-start gap-2 rounded-lg border border-line bg-bg/50 p-3 text-left text-xs text-muted hover:bg-surface-2"
               onClick={() => { setValue('email', 'admin@opspilot.local'); setValue('password', 'opspilot-demo') }}>
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
-              <span>Ambiente local de demonstração. Clique para preencher a conta de demonstração <code className="text-fg">admin@opspilot.local</code>.</span>
+              <span>Ambiente de demonstração com dados fictícios. Clique para preencher a conta <code className="text-fg">admin@opspilot.local</code> (senha <code className="text-fg">opspilot-demo</code>).</span>
             </button>
           )}
         </form>

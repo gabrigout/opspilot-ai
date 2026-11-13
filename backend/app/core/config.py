@@ -1,9 +1,11 @@
 """Application settings, loaded from environment variables (see .env.example)."""
+import os
 from functools import lru_cache
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEFAULT_SQLITE_URL = "sqlite:///./opspilot.db"
 INSECURE_SECRETS = {
     "", "change-me", "changeme", "secret", "dev-secret-change-me",
     "dev-secret-change-me-dev-secret-change-me",  # the development defaults (config, compose, .env.example)
@@ -14,7 +16,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     environment: str = "development"  # development | test | production
-    database_url: str = "sqlite:///./opspilot.db"
+    database_url: str = DEFAULT_SQLITE_URL
     secret_key: str = "dev-secret-change-me-dev-secret-change-me"  # >= 32 bytes for HS256; rejected in production
     access_token_expire_minutes: int = 60
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
@@ -43,11 +45,24 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.environment.lower() == "production"
 
+    @property
+    def is_demo(self) -> bool:
+        """Public demo hosting: fictitious data, demo users and SQLite allowed, but real secrets required."""
+        return self.environment.lower() == "demo"
+
     @model_validator(mode="after")
     def _validate_production(self) -> "Settings":
-        if self.is_production:
+        if os.environ.get("VERCEL"):
+            # Safe defaults on Vercel: never run the public site with the development secret/mode,
+            # and use the only writable location for SQLite.
+            if self.environment.lower() == "development":
+                self.environment = "demo"
+            if self.database_url == DEFAULT_SQLITE_URL:
+                self.database_url = "sqlite:////tmp/opspilot.db"
+        if self.is_production or self.is_demo:
             if self.secret_key in INSECURE_SECRETS or len(self.secret_key) < 32:
-                raise ValueError("SECRET_KEY must be a random string with >= 32 chars in production")
+                raise ValueError("SECRET_KEY must be a random string with >= 32 chars in production/demo")
+        if self.is_production:
             if self.database_url.startswith("sqlite"):
                 raise ValueError("Use a managed PostgreSQL DATABASE_URL in production")
             if self.admin_password is not None and len(self.admin_password) < 12:

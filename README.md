@@ -155,10 +155,10 @@ cd frontend && npm ci && npm test && npm run build
 ### Resultados da última execução (Windows, Python 3.12.10, Node 24, PostgreSQL 18 via WSL)
 | Suíte | Comando | Resultado |
 |---|---|---|
-| Backend (regras, API, serviços, ferramentas, agente demonstrativo, falhas do provedor, segurança, config de produção) em SQLite | `pytest -q` | **106 passaram**, 0 falhas |
-| Backend em **PostgreSQL 18** (esquema criado pela migração Alembic) | `TEST_DATABASE_URL=postgresql+psycopg://… pytest -q` | **106 passaram**, 0 falhas |
+| Backend (regras, API, serviços, ferramentas, agente demonstrativo, falhas do provedor, segurança, config de produção) em SQLite | `pytest -q` | **110 passaram**, 0 falhas |
+| Backend em **PostgreSQL 18** (esquema criado pela migração Alembic) | `TEST_DATABASE_URL=postgresql+psycopg://… pytest -q` | **106 passaram**, 0 falhas (execução anterior aos 4 testes de configuração mais recentes, que rodam em SQLite) |
 | Backend – lint | `ruff check app tests` | sem problemas |
-| Frontend (utilitários, cliente HTTP, sessão, componentes, formulários, páginas, Copilot) | `npm test` (Vitest) | **22 passaram** em 4 arquivos |
+| Frontend (utilitários, cliente HTTP, sessão, componentes, formulários, páginas, Copilot) | `npm test` (Vitest) | **25 passaram** em 4 arquivos |
 | Frontend – tipos e build de produção | `npm run build` | sucesso (code splitting por rota) |
 | Migrações Alembic | `alembic upgrade head` / `downgrade base` | sucesso em SQLite e PostgreSQL |
 | Fluxo ponta a ponta (proxy do frontend → FastAPI → PostgreSQL): login, KPIs, atraso, recomendação e atribuição, transição inválida, ocorrência + histórico, Copilot + confirmação, PDF/CSV, simulação, reset | script de verificação | **20/20** |
@@ -216,5 +216,5 @@ Veja [docs/ROADMAP.md](docs/ROADMAP.md).
 - Auth (JWT, roles), CSV/PDF reports, Alembic migrations, Docker Compose, GitHub Actions, Vercel/Render configs.
 
 **Quick start:** `docker compose up --build` → <http://localhost:8080> (login `admin@opspilot.local` / `opspilot-demo`, local only). Without Docker: see *Opção B* above. In the cloud: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/gabrigout/opspilot-ai?quickstart=1) (uses your free Codespaces quota; the devcontainer runs the same `docker compose`).
-**Verified:** 106 backend tests (SQLite and PostgreSQL), 22 frontend tests, Docker Compose stack healthy with a 20/20 end-to-end check, CI green. **Not verified:** a live Anthropic key, browser E2E suite, the Codespaces button itself.
+**Verified:** 110 backend tests (SQLite; 106 also on PostgreSQL), 25 frontend tests, Docker Compose stack healthy with a 20/20 end-to-end check, CI green. **Not verified:** a live Anthropic key, browser E2E suite, the Codespaces button itself.
 **Disclaimer:** independent project, fictitious simulated data, no affiliation with any company. There is no hosted public demo with a backend. See *Limitações conhecidas* for what was and was not verified.
