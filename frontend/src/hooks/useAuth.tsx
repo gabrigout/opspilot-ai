@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { get, post, tokenStore } from '@/lib/api'
+import { ApiError, get, post, tokenStore } from '@/lib/api'
 import type { Token, User } from '@/types/api'
 
 interface AuthState {
@@ -20,7 +20,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!tokenStore.get()) return
-    get<User>('/auth/me').then(setUser).catch(() => tokenStore.clear()).finally(() => setLoading(false))
+    let cancelled = false
+    // Only an explicit 401 ends the session: transient network/5xx errors must not log the user out.
+    const restore = async (attempt: number): Promise<void> => {
+      try {
+        const me = await get<User>('/auth/me')
+        if (!cancelled) setUser(me)
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401) tokenStore.clear()
+        else if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 600 * attempt))
+          if (!cancelled) return restore(attempt + 1)
+        }
+      }
+    }
+    void restore(1).finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {

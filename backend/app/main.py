@@ -53,6 +53,16 @@ def create_app() -> FastAPI:
     )
     register_error_handlers(app)
 
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        if request.url.path.startswith(f"{API}/") and not request.url.path.startswith(f"{API}/docs"):
+            response.headers.setdefault("Cache-Control", "no-store")  # API data is per-user and time-sensitive
+        return response
+
     @app.get(f"{API}/health", tags=["system"], summary="Health check (sem autenticação)")
     def health(db: Session = Depends(get_db)):
         db.execute(text("SELECT 1"))

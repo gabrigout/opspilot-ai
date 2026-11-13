@@ -1,8 +1,11 @@
 import os
 
 # Must be set before the app is imported: in-memory SQLite, deterministic settings, no external AI.
+# TEST_DATABASE_URL (e.g. postgresql+psycopg://user:pw@localhost/opspilot_test) runs the whole suite on
+# PostgreSQL with the schema created by the Alembic migrations; the default is in-memory SQLite.
 os.environ.update(
-    ENVIRONMENT="test", DATABASE_URL="sqlite://", SECRET_KEY="test-secret-key-with-more-than-32-characters!!",
+    ENVIRONMENT="test", DATABASE_URL=os.environ.get("TEST_DATABASE_URL", "sqlite://"),
+    SECRET_KEY="test-secret-key-with-more-than-32-characters!!",
     AI_PROVIDER="demo", ANTHROPIC_API_KEY="", RULES_OVERRIDES="{}",
 )
 
@@ -17,7 +20,16 @@ from app.services import seed  # noqa: E402
 
 @pytest.fixture(scope="session", autouse=True)
 def _tables():
-    Base.metadata.create_all(engine)
+    if engine.dialect.name == "sqlite":
+        Base.metadata.create_all(engine)
+        return
+    from alembic import command
+    from alembic.config import Config
+
+    cfg = Config(os.path.join(os.path.dirname(__file__), "..", "alembic.ini"))
+    cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "..", "migrations"))
+    command.downgrade(cfg, "base")  # start from a clean schema, then prove the migration builds it
+    command.upgrade(cfg, "head")
 
 
 @pytest.fixture(autouse=True)

@@ -4,7 +4,10 @@ from functools import lru_cache
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-INSECURE_SECRETS = {"", "change-me", "changeme", "secret", "dev-secret-change-me"}
+INSECURE_SECRETS = {
+    "", "change-me", "changeme", "secret", "dev-secret-change-me",
+    "dev-secret-change-me-dev-secret-change-me",  # the development defaults (config, compose, .env.example)
+}
 
 
 class Settings(BaseSettings):
@@ -12,7 +15,7 @@ class Settings(BaseSettings):
 
     environment: str = "development"  # development | test | production
     database_url: str = "sqlite:///./opspilot.db"
-    secret_key: str = "dev-secret-change-me"
+    secret_key: str = "dev-secret-change-me-dev-secret-change-me"  # >= 32 bytes for HS256; rejected in production
     access_token_expire_minutes: int = 60
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
 
@@ -47,6 +50,8 @@ class Settings(BaseSettings):
                 raise ValueError("SECRET_KEY must be a random string with >= 32 chars in production")
             if self.database_url.startswith("sqlite"):
                 raise ValueError("Use a managed PostgreSQL DATABASE_URL in production")
+            if self.admin_password is not None and len(self.admin_password) < 12:
+                raise ValueError("ADMIN_PASSWORD must have at least 12 characters in production")
         return self
 
 

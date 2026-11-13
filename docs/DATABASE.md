@@ -35,7 +35,13 @@ cd backend
 alembic upgrade head          # DATABASE_URL from the environment
 alembic revision --autogenerate -m "describe change"
 ```
-The initial migration was generated from the models and verified with `upgrade head` / `downgrade base` on SQLite; CI additionally applies it to a real PostgreSQL 16 service container and runs a smoke test. (Not executed on PostgreSQL in the authoring environment, which had no Docker/PostgreSQL.)
+The initial migration was generated from the models. It has been verified with `upgrade head` / `downgrade base` on **SQLite** and on **PostgreSQL 18** (local, via WSL), and CI applies it to a PostgreSQL 16 service container.
+
+The whole backend test-suite also runs on PostgreSQL, with the schema built by the migration:
+```bash
+TEST_DATABASE_URL=postgresql+psycopg://user:pw@localhost:5432/opspilot_test pytest -q
+```
+(`tests/conftest.py` runs `alembic downgrade base` + `upgrade head` first. The default without this variable is in-memory SQLite.)
 
 ## Demo data
 `app/services/seed.py` (deterministic, seed 42): 16 restaurants (two deliberately slow kitchens, one paused), 34 couriers (5 offline), ~108 orders spread over ~72 h plus every live situation (healthy, delayed with assorted severities, at risk, waiting without courier, cancelled, delivered), 24 incidents in all statuses, event history and activity feed. All names/addresses/phones are fictitious. Restore with `POST /simulation/reset`, the *Restaurar demonstração* button, or `python -m app.cli reset`.

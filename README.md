@@ -109,16 +109,19 @@ cd backend && pip install -r requirements-dev.txt && pytest -q && ruff check app
 cd frontend && npm ci && npm test && npm run build
 ```
 
-### Resultados da última execução (ambiente de desenvolvimento Windows, Python 3.12.10, Node 24)
+### Resultados da última execução (Windows, Python 3.12.10, Node 24, PostgreSQL 18 via WSL)
 | Suíte | Comando | Resultado |
 |---|---|---|
-| Backend (regras, API, serviços, ferramentas, agente demonstrativo, falhas do provedor, segurança) | `pytest -q` | **97 passaram**, 0 falhas (~78 s) |
+| Backend (regras, API, serviços, ferramentas, agente demonstrativo, falhas do provedor, segurança, config de produção) em SQLite | `pytest -q` | **106 passaram**, 0 falhas |
+| Backend em **PostgreSQL 18** (esquema criado pela migração Alembic) | `TEST_DATABASE_URL=postgresql+psycopg://… pytest -q` | **106 passaram**, 0 falhas |
 | Backend – lint | `ruff check app tests` | sem problemas |
-| Frontend (utilitários, cliente HTTP, componentes, formulários, páginas, Copilot) | `npm test` (Vitest) | **19 passaram** em 3 arquivos |
+| Frontend (utilitários, cliente HTTP, sessão, componentes, formulários, páginas, Copilot) | `npm test` (Vitest) | **22 passaram** em 4 arquivos |
 | Frontend – tipos e build de produção | `npm run build` | sucesso (code splitting por rota) |
-| Migrações Alembic | `alembic upgrade head` / `downgrade base` (SQLite) | sucesso |
+| Migrações Alembic | `alembic upgrade head` / `downgrade base` | sucesso em SQLite e PostgreSQL |
+| Fluxo ponta a ponta (proxy do frontend → FastAPI → PostgreSQL): login, KPIs, atraso, recomendação e atribuição, transição inválida, ocorrência + histórico, Copilot + confirmação, PDF/CSV, simulação, reset | script de verificação | **20/20** |
+| Auditoria de dependências | `npm audit`, `pip-audit` | sem vulnerabilidades conhecidas |
 
-Também foi feita uma verificação manual no navegador (login, dashboard, filtros de pedidos, Copilot com ferramenta e confirmação visual, simulador). **Não executados:** testes E2E (Playwright), Docker/PostgreSQL, API real da Anthropic.
+Também foi feita verificação manual no navegador (desktop e celular 375 px, sem rolagem horizontal). **Não executados:** testes E2E de navegador (Playwright), contêineres Docker em execução, API real da Anthropic.
 
 ## Estrutura de diretórios
 
@@ -141,7 +144,7 @@ opspilot-ai/
 
 ## Limitações conhecidas
 
-- **Docker/PostgreSQL não foram executados no ambiente de desenvolvimento** (sem Docker instalado): as migrações foram validadas em SQLite (`upgrade`/`downgrade`) e o caminho PostgreSQL está coberto pela configuração de CI, ainda não executada. Veja [docs/DATABASE.md](docs/DATABASE.md).
+- **Docker:** as imagens são construídas com sucesso pelo CI, mas nenhum contêiner foi executado ponta a ponta no ambiente de desenvolvimento (sem Docker instalado). O PostgreSQL foi validado de verdade (PostgreSQL 18 local e PostgreSQL 16 no CI). Veja [docs/DATABASE.md](docs/DATABASE.md).
 - O provedor Anthropic foi testado com um provedor falso (loop, limites, falhas, injeção), **não** contra a API real. O modo demonstrativo reconhece apenas padrões pré-definidos e não "raciocina".
 - Sem testes E2E de navegador (Playwright); a interface foi verificada manualmente no navegador e por testes de componentes.
 - Revogação de token e limites de taxa são em memória (por processo). JWT em `localStorage`. Veja [docs/SECURITY.md](docs/SECURITY.md).

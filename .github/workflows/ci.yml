@@ -50,6 +50,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+psycopg://opspilot:ci_password@localhost:5432/opspilot
       ENVIRONMENT: development
+      SECRET_KEY: ci-secret-key-ci-secret-key-ci-secret-key
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -70,12 +71,16 @@ jobs:
           c = TestClient(app)
           tok = c.post("/api/v1/auth/login", json={"email": "admin@opspilot.local", "password": "opspilot-demo"}).json()["access_token"]
           h = {"Authorization": f"Bearer {tok}"}
-          k = c.get("/api/v1/dashboard/metrics", headers=h).json()
+          k = c.get("/api/v1/dashboard/metrics?hours=720", headers=h).json()
           assert k["total_orders"] >= 100, k
           chat = c.post("/api/v1/ai/chat", json={"message": "Quais pedidos estão atrasados?"}, headers=h).json()
           assert chat["message"]["metadata"]["tool_runs"], chat
           print("PostgreSQL smoke test OK", k["total_orders"])
           PY
+      - name: Full backend test suite on PostgreSQL (schema from Alembic)
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://opspilot:ci_password@localhost:5432/opspilot
+        run: pytest -q
 
   frontend:
     runs-on: ubuntu-latest
