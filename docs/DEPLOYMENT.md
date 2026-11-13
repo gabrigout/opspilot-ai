@@ -1,6 +1,8 @@
 # Deployment
 
-> **Status:** configuration is provided but **nothing has been deployed** by the project authors. No public URL exists yet.
+> **Status:** configuration is provided, but the **backend has not been deployed**, so there is no hosted demo with a working login. (The frontend was imported into Vercel on its own, without an API, so its login cannot work until `VITE_API_URL` points to a running backend.)
+>
+> **Open it without installing anything:** the repository includes a `.devcontainer` that runs the Docker Compose stack in **GitHub Codespaces** (see the README button).
 
 Target topology: **frontend on Vercel**, **backend as a Docker web service** (Render blueprint included), **managed PostgreSQL**.
 

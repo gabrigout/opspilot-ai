@@ -2,7 +2,26 @@
 
 > An AI-powered delivery operations platform featuring intelligent monitoring, operational analytics, and tool-using AI agents.
 
+[![CI](https://github.com/gabrigout/opspilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/gabrigout/opspilot-ai/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+
 **🇧🇷 Português** (principal) · **🇬🇧 [English summary](#english-summary)**
+
+### ▶️ Abrir a aplicação (sem instalar nada)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/gabrigout/opspilot-ai?quickstart=1)
+
+O botão acima cria um ambiente na nuvem do GitHub (conta GitHub gratuita; usa a cota gratuita do Codespaces) que executa `docker compose up` e abre o app na porta **8080**. O primeiro build leva alguns minutos. Login de demonstração: `admin@opspilot.local` / `opspilot-demo`. A porta é privada para quem criou o Codespace.
+
+> Não há demo pública hospedada: o app precisa de backend e banco, e o GitHub Pages só serve sites estáticos. Para rodar no seu computador, veja [Como executar](#como-executar).
+
+**Sumário:** [O que é](#o-que-é) · [Funcionalidades](#funcionalidades) · [Tecnologias](#tecnologias) · [Arquitetura](#arquitetura-resumo) · [Demonstração visual](#demonstração-visual) · [Como executar](#como-executar) · [IA](#como-configurar-a-ia) · [Testes](#como-executar-os-testes) · [Limitações](#limitações-conhecidas)
 
 > ⚠️ **Projeto independente de demonstração tecnológica.** Inspirado em desafios reais de logística e delivery, mas **sem qualquer vínculo com empresas reais**: não usa marcas, logotipos ou dados proprietários. **Todos os dados (restaurantes, clientes, entregadores, pedidos) são fictícios e simulados.**
 
@@ -162,9 +181,11 @@ opspilot-ai/
 │   │   ├── cli.py           └── main.py
 │   ├── migrations/ (Alembic)   ├── tests/   ├── Dockerfile   └── requirements*.txt
 ├── frontend/ (src/{components,pages,layouts,hooks,lib,types,test}, Dockerfile, nginx.conf, vercel.json)
-├── docs/            ├── .github/workflows/ci.yml
+├── docs/ (arquitetura, API, banco, IA, segurança, deploy, roadmap, images/)
+├── .github/ (workflows/ci.yml, dependabot, templates de issue/PR)
+├── .devcontainer/ (GitHub Codespaces)
 ├── docker-compose.yml   docker-compose.prod.yml   render.yaml
-└── .env.example   LICENSE   CONTRIBUTING.md
+└── .env.example   LICENSE   CONTRIBUTING.md   SECURITY.md
 ```
 
 ## Limitações conhecidas
@@ -175,7 +196,7 @@ opspilot-ai/
 - Sem suíte de testes E2E de navegador no repositório; a interface foi verificada manualmente (desktop e celular), por testes de componentes e por um roteiro de API ponta a ponta. As capturas de tela foram geradas automaticamente com Edge headless.
 - Revogação de token e limites de taxa são em memória (por processo). JWT em `localStorage`. Veja [docs/SECURITY.md](docs/SECURITY.md).
 - Distâncias em linha reta, sem rotas ou trânsito; localizações simuladas.
-- Nada foi implantado: há configurações para Vercel/Render, sem URL pública.
+- **Sem demo pública hospedada com backend.** Há configurações para Vercel/Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)), mas o backend não foi implantado; use o Codespaces ou o Docker para ver o app funcionando. O botão de Codespaces depende da sua cota gratuita do GitHub e **não foi testado** de ponta a ponta pelo autor (a configuração `.devcontainer` segue o padrão docker-in-docker; o `docker compose` que ele executa foi validado localmente).
 
 ## Roadmap
 Veja [docs/ROADMAP.md](docs/ROADMAP.md).
@@ -194,5 +215,6 @@ Veja [docs/ROADMAP.md](docs/ROADMAP.md).
 - A user-controlled simulator (advance the clock, demand spikes, courier outages, slow kitchens) writes to the real database, so dashboards, reports and the agent all reflect it.
 - Auth (JWT, roles), CSV/PDF reports, Alembic migrations, Docker Compose, GitHub Actions, Vercel/Render configs.
 
-**Quick start:** `docker compose up --build` → <http://localhost:8080> (login `admin@opspilot.local` / `opspilot-demo`, local only). Without Docker: see *Opção B* above.
-**Disclaimer:** independent project, fictitious simulated data, no affiliation with any company. Deployment configs are provided but nothing is deployed. See *Limitações conhecidas* for what was and was not verified.
+**Quick start:** `docker compose up --build` → <http://localhost:8080> (login `admin@opspilot.local` / `opspilot-demo`, local only). Without Docker: see *Opção B* above. In the cloud: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/gabrigout/opspilot-ai?quickstart=1) (uses your free Codespaces quota; the devcontainer runs the same `docker compose`).
+**Verified:** 106 backend tests (SQLite and PostgreSQL), 22 frontend tests, Docker Compose stack healthy with a 20/20 end-to-end check, CI green. **Not verified:** a live Anthropic key, browser E2E suite, the Codespaces button itself.
+**Disclaimer:** independent project, fictitious simulated data, no affiliation with any company. There is no hosted public demo with a backend. See *Limitações conhecidas* for what was and was not verified.

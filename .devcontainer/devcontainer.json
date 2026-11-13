@@ -1,0 +1,20 @@
+{
+  "name": "OpsPilot AI (Docker Compose)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": { "cpus": 2, "memory": "4gb", "storage": "16gb" },
+  "forwardPorts": [8080, 8000],
+  "portsAttributes": {
+    "8080": { "label": "OpsPilot AI (app)", "onAutoForward": "openBrowser" },
+    "8000": { "label": "API / Swagger (/api/v1/docs)", "onAutoForward": "silent" }
+  },
+  "postCreateCommand": "docker compose up -d --build",
+  "postAttachCommand": "echo 'OpsPilot AI: abra a porta 8080. Login local de demonstracao: admin@opspilot.local / opspilot-demo'",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "dbaeumer.vscode-eslint", "ms-azuretools.vscode-docker"]
+    }
+  }
+}
