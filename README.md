@@ -47,7 +47,31 @@ Regras de negócio ficam em `backend/app/rules` (puras, configuráveis, testadas
 
 ## Demonstração visual
 
-Capturas de tela ainda **não** foram adicionadas ao repositório (a pasta [docs/images](docs/images) está pronta para recebê-las). Para ver a aplicação, execute-a conforme abaixo.
+Capturas reais da aplicação rodando em Docker (dados fictícios do simulador, Copilot em modo demonstrativo).
+
+**Dashboard operacional** — KPIs calculados do banco, gráficos por período e alertas gerados por regras de negócio:
+
+![Dashboard](docs/images/02-dashboard.png)
+
+**AI Copilot com tool calling** — a ferramenta usada, os *dados consultados* e as *recomendações da IA* ficam separados, com referências aos pedidos:
+
+![Copilot](docs/images/05-copilot-tool-calling.png)
+
+**Confirmação humana** — o agente só *propõe* a criação de uma ocorrência; ela só é gravada depois que o usuário confirma:
+
+![Confirmação de ação](docs/images/06-copilot-confirmation.png)
+
+**Pedido com recomendação de entregador** — ranking explicável (distância, carga, ociosidade); nada é atribuído automaticamente:
+
+![Pedido e recomendação](docs/images/04-order-courier-recommendation.png)
+
+| Monitoramento de pedidos | Simulador operacional |
+|---|---|
+| ![Pedidos](docs/images/03-orders.png) | ![Simulador](docs/images/07-simulator.png) |
+
+| Relatórios (CSV/PDF) | Login |
+|---|---|
+| ![Relatórios](docs/images/08-reports.png) | ![Login](docs/images/01-login.png) |
 
 ## Como executar
 
@@ -148,7 +172,7 @@ opspilot-ai/
 - **Docker:** o `docker compose up` foi executado e validado localmente (db, backend e frontend `healthy`, roteiro ponta a ponta 20/20 pelo nginx, logs sem erros). Em máquinas com pouca RAM (≈4 GB) limite o WSL com um `.wslconfig` (`memory=2GB`) e espere 1–2 min pelo engine e vários minutos pelo primeiro build. Veja [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 - Os dados de demonstração são relativos ao momento da criação do banco: com o tempo, mais pedidos aparecem como atrasados. Use *Restaurar demonstração* para recomeçar.
 - O provedor Anthropic foi testado com um provedor falso (loop, limites, falhas, injeção), **não** contra a API real. O modo demonstrativo reconhece apenas padrões pré-definidos e não "raciocina".
-- Sem testes E2E de navegador (Playwright); a interface foi verificada manualmente no navegador e por testes de componentes.
+- Sem suíte de testes E2E de navegador no repositório; a interface foi verificada manualmente (desktop e celular), por testes de componentes e por um roteiro de API ponta a ponta. As capturas de tela foram geradas automaticamente com Edge headless.
 - Revogação de token e limites de taxa são em memória (por processo). JWT em `localStorage`. Veja [docs/SECURITY.md](docs/SECURITY.md).
 - Distâncias em linha reta, sem rotas ou trânsito; localizações simuladas.
 - Nada foi implantado: há configurações para Vercel/Render, sem URL pública.

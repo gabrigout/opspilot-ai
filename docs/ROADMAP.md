@@ -3,7 +3,7 @@
 **Done (v1.0):** orders with validated state machine; couriers with explainable recommendation; restaurants analytics; incidents with full history; rule-based alerts; dashboard with 6 charts; 5 report types with CSV/PDF export; user-controlled simulator; Copilot with 12 tools, demo + Anthropic providers, confirmation flow; JWT auth with roles; Alembic migrations; Docker Compose; CI.
 
 ## Next
-1. **Browser E2E tests** (Playwright) for login → dashboard → order → assign → copilot flows, plus screenshots for the README.
+1. **Browser E2E tests** (Playwright) for login → dashboard → order → assign → copilot flows, committed to the repo and run in CI (README screenshots already exist).
 2. **Live-provider integration test** (opt-in, behind an API-key secret) and streaming responses in the Copilot UI.
 3. **Auth hardening:** HttpOnly cookie sessions + CSRF, refresh tokens, Redis-backed revocation/rate limiting, user administration screen.
 4. **Dependency & secret scanning** (Dependabot, CodeQL, gitleaks) in CI.
