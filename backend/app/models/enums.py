@@ -1,0 +1,91 @@
+"""Domain enumerations (values == names so they are stable in the database)."""
+from enum import StrEnum
+
+
+class OrderStatus(StrEnum):
+    RECEIVED = "RECEIVED"
+    CONFIRMED = "CONFIRMED"
+    PREPARING = "PREPARING"
+    READY_FOR_PICKUP = "READY_FOR_PICKUP"
+    WAITING_COURIER = "WAITING_COURIER"
+    IN_DELIVERY = "IN_DELIVERY"
+    DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
+
+
+ACTIVE_STATUSES = (
+    OrderStatus.RECEIVED,
+    OrderStatus.CONFIRMED,
+    OrderStatus.PREPARING,
+    OrderStatus.READY_FOR_PICKUP,
+    OrderStatus.WAITING_COURIER,
+    OrderStatus.IN_DELIVERY,
+)
+TERMINAL_STATUSES = (OrderStatus.DELIVERED, OrderStatus.CANCELLED)
+
+
+class CourierStatus(StrEnum):
+    AVAILABLE = "AVAILABLE"
+    ASSIGNED = "ASSIGNED"
+    PICKING_UP = "PICKING_UP"
+    DELIVERING = "DELIVERING"
+    OFFLINE = "OFFLINE"
+
+
+class RestaurantStatus(StrEnum):
+    OPEN = "OPEN"
+    BUSY = "BUSY"
+    PAUSED = "PAUSED"
+    CLOSED = "CLOSED"
+
+
+class IncidentType(StrEnum):
+    DELIVERY_DELAY = "DELIVERY_DELAY"
+    SLOW_PREPARATION = "SLOW_PREPARATION"
+    COURIER_SHORTAGE = "COURIER_SHORTAGE"
+    ORDER_CANCELLED = "ORDER_CANCELLED"
+    COURIER_ISSUE = "COURIER_ISSUE"
+    CUSTOMER_COMPLAINT = "CUSTOMER_COMPLAINT"
+    ADDRESS_ISSUE = "ADDRESS_ISSUE"
+    ORDER_NOT_FOUND = "ORDER_NOT_FOUND"
+
+
+class Priority(StrEnum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+PRIORITY_RANK = {Priority.LOW: 1, Priority.MEDIUM: 2, Priority.HIGH: 3, Priority.CRITICAL: 4}
+
+
+class IncidentStatus(StrEnum):
+    OPEN = "OPEN"
+    INVESTIGATING = "INVESTIGATING"
+    WAITING_ACTION = "WAITING_ACTION"
+    RESOLVED = "RESOLVED"
+    CLOSED = "CLOSED"
+
+
+OPEN_INCIDENT_STATUSES = (IncidentStatus.OPEN, IncidentStatus.INVESTIGATING, IncidentStatus.WAITING_ACTION)
+
+
+class UserRole(StrEnum):
+    ADMIN = "ADMIN"
+    OPERATOR = "OPERATOR"
+    VIEWER = "VIEWER"
+
+
+class Severity(StrEnum):
+    INFO = "INFO"
+    WARNING = "WARNING"
+    CRITICAL = "CRITICAL"
+
+
+class ToolStatus(StrEnum):
+    SUCCESS = "SUCCESS"
+    ERROR = "ERROR"
+    PENDING_CONFIRMATION = "PENDING_CONFIRMATION"
+    CONFIRMED = "CONFIRMED"
+    REJECTED = "REJECTED"
