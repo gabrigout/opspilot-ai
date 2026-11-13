@@ -28,6 +28,12 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 ```
 Put a TLS-terminating reverse proxy in front (Caddy, Traefik, cloud LB).
 
+## Local Docker notes
+- `docker compose up -d --build` starts `db` → `backend` (waits for a healthy DB, runs migrations, seeds) → `frontend` (waits for a healthy backend). Open <http://localhost:8080>.
+- nginx resolves `backend` per request through Docker's DNS (`resolver 127.0.0.11`), so it starts and recovers even if the API container is recreated.
+- Low-RAM hosts (~4 GB): create `%USERPROFILE%\.wslconfig` with `[wsl2]` `memory=2GB` `swap=2GB` `processors=2`, run `wsl --shutdown`, reopen Docker Desktop and allow 1–2 minutes for the engine. The first build can take several minutes.
+- Stop with `docker compose down` (data kept in the `pgdata` volume; add `-v` to delete it).
+
 ## Production checklist
 - [ ] `SECRET_KEY` random ≥ 32 chars (the app refuses to start otherwise)
 - [ ] Managed PostgreSQL with backups; `DATABASE_URL` set

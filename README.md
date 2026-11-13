@@ -119,9 +119,10 @@ cd frontend && npm ci && npm test && npm run build
 | Frontend – tipos e build de produção | `npm run build` | sucesso (code splitting por rota) |
 | Migrações Alembic | `alembic upgrade head` / `downgrade base` | sucesso em SQLite e PostgreSQL |
 | Fluxo ponta a ponta (proxy do frontend → FastAPI → PostgreSQL): login, KPIs, atraso, recomendação e atribuição, transição inválida, ocorrência + histórico, Copilot + confirmação, PDF/CSV, simulação, reset | script de verificação | **20/20** |
+| **Docker Compose** (db + backend + frontend/nginx) | `docker compose up -d --build` | 3 contêineres `healthy`; roteiro ponta a ponta **20/20** via `http://localhost:8080`; logs sem erros; login pela interface |
 | Auditoria de dependências | `npm audit`, `pip-audit` | sem vulnerabilidades conhecidas |
 
-Também foi feita verificação manual no navegador (desktop e celular 375 px, sem rolagem horizontal). **Não executados:** testes E2E de navegador (Playwright), contêineres Docker em execução, API real da Anthropic.
+Também foi feita verificação manual no navegador (desktop e celular 375 px, sem rolagem horizontal). **Não executados:** testes E2E de navegador (Playwright) e a API real da Anthropic.
 
 ## Estrutura de diretórios
 
@@ -144,7 +145,8 @@ opspilot-ai/
 
 ## Limitações conhecidas
 
-- **Docker:** as imagens são construídas com sucesso pelo CI, mas nenhum contêiner foi executado ponta a ponta no ambiente de desenvolvimento (sem Docker instalado). O PostgreSQL foi validado de verdade (PostgreSQL 18 local e PostgreSQL 16 no CI). Veja [docs/DATABASE.md](docs/DATABASE.md).
+- **Docker:** o `docker compose up` foi executado e validado localmente (db, backend e frontend `healthy`, roteiro ponta a ponta 20/20 pelo nginx, logs sem erros). Em máquinas com pouca RAM (≈4 GB) limite o WSL com um `.wslconfig` (`memory=2GB`) e espere 1–2 min pelo engine e vários minutos pelo primeiro build. Veja [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- Os dados de demonstração são relativos ao momento da criação do banco: com o tempo, mais pedidos aparecem como atrasados. Use *Restaurar demonstração* para recomeçar.
 - O provedor Anthropic foi testado com um provedor falso (loop, limites, falhas, injeção), **não** contra a API real. O modo demonstrativo reconhece apenas padrões pré-definidos e não "raciocina".
 - Sem testes E2E de navegador (Playwright); a interface foi verificada manualmente no navegador e por testes de componentes.
 - Revogação de token e limites de taxa são em memória (por processo). JWT em `localStorage`. Veja [docs/SECURITY.md](docs/SECURITY.md).

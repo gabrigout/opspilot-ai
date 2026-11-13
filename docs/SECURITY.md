@@ -30,7 +30,7 @@ OpsPilot AI is a demonstration project with simulated data, but it applies real 
 - No continuous dependency/secret scanning is configured yet (audits were run manually; see ROADMAP).
 - The login rate limit is per e-mail, so someone can deliberately trigger the limit for a known address (a brief lockout).
 - Swagger UI (`/api/v1/docs`) stays enabled in production.
-- Docker images were built successfully by CI, but no container was run end-to-end in the authoring environment.
+- The development compose file publishes the API on `0.0.0.0:8000` with demo users enabled (`ENVIRONMENT=development`): use it on a trusted machine only; use `docker-compose.prod.yml` (no demo users, strong secrets required) for anything shared.
 
 ## Reporting a vulnerability
 Open a private security advisory on the repository, or contact the maintainers. Do not include real credentials in issues.
